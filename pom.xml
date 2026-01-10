@@ -18,10 +18,17 @@
     <name>projetMPISI2</name>
     <description>projetMPISI2</description>
 
+    <!-- Propriétés globales -->
     <properties>
         <java.version>17</java.version>
+
+        <!-- SonarCloud : à personnaliser -->
+        <sonar.organization>TON_ORGANIZATION</sonar.organization>
+        <sonar.projectKey>TON_PROJECT_KEY</sonar.projectKey>
+        <sonar.host.url>https://sonarcloud.io</sonar.host.url>
     </properties>
 
+    <!-- Dépendances -->
     <dependencies>
         <!-- Spring Boot Core -->
         <dependency>
@@ -41,7 +48,7 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- In-memory DB for testing -->
+        <!-- In-memory DB for tests -->
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
@@ -60,6 +67,18 @@
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
             <version>2.6.0</version>
+        </dependency>
+
+        <!-- Actuator : expose les endpoints -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+
+        <!-- Micrometer Prometheus : métriques -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus</artifactId>
         </dependency>
 
         <!-- Spring Boot Devtools -->
@@ -98,6 +117,7 @@
             <version>7.14.0</version>
             <scope>test</scope>
         </dependency>
+
         <dependency>
             <groupId>io.cucumber</groupId>
             <artifactId>cucumber-junit</artifactId>
@@ -113,9 +133,16 @@
         </dependency>
     </dependencies>
 
+    <!-- Build / Plugins -->
     <build>
-        <plugins>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>false</filtering>
+            </resource>
+        </resources>
 
+        <plugins>
             <!-- Compiler Plugin -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -174,9 +201,10 @@
                                     <element>BUNDLE</element>
                                     <limits>
                                         <limit>
+
                                             <counter>INSTRUCTION</counter>
                                             <value>COVEREDRATIO</value>
-                                            <minimum>0.50</minimum>
+                                            <minimum>0.70</minimum>
                                         </limit>
                                     </limits>
                                 </rule>
