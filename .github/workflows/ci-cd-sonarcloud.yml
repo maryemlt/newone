@@ -1,0 +1,70 @@
+name: CI/CD with SonarCloud
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+
+env:
+  SONAR_HOST_URL: https://sonarcloud.io
+  SONAR_ORG: maryemlt
+  SONAR_PROJECT_KEY: maryemlt_devOps   # remplace par ton vrai projectKey SonarCloud
+
+jobs:
+  ci:
+    name: Build + Test + SonarCloud
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
+
+      - name: Build and Test
+        run: mvn -B clean verify
+
+      - name: SonarCloud Scan
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: mvn -B org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.host.url=${{ env.SONAR_HOST_URL }} -Dsonar.organization=${{ env.SONAR_ORG }} -Dsonar.projectKey=${{ env.SONAR_PROJECT_KEY }} -Dsonar.token=${{ secrets.SONAR_TOKEN }}
+
+  cd:
+    name: Docker build & push + K8s deploy
+    runs-on: ubuntu-latest
+    needs: ci
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # --- PUSH DOCKER HUB (comme ton image mariam651/...) ---
+      - name: Login DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+      - name: Build and Push image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: mariam651/projetmpisi2-app:latest
+
+      # --- DEPLOY K8S ---
+      - name: Deploy to Kubernetes
+        env:
+          KUBECONFIG_DATA: ${{ secrets.KUBECONFIG }}
+        run: |
+          echo "$KUBECONFIG_DATA" | base64 -d > kubeconfig
+          export KUBECONFIG=$PWD/kubeconfig
+          kubectl apply -f k8s/
+          kubectl set image deployment/spring-app-deployment spring-app=mariam651/projetmpisi2-app:latest
+          kubectl rollout status deployment/spring-app-deployment
