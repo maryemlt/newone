@@ -26,6 +26,12 @@
         <sonar.organization>TON_ORGANIZATION</sonar.organization>
         <sonar.projectKey>TON_PROJECT_KEY</sonar.projectKey>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
+
+            <sonar.organization>maryemlt</sonar.organization>
+            <sonar.host.url>https://sonarcloud.io</sonar.host.url>
+            <sonar.coverage.jacoco.xmlReportPaths>target/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
+
+
     </properties>
 
     <!-- Dépendances -->
